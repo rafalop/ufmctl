@@ -11,15 +11,6 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "ufmctl",
 	Short: "cli for interacting with UFM api",
-	//Run: func(cmd *cobra.Command, args []string) {
-	//	var err error
-	//	UfmClient, err = ufm.GetClient(Username, Password, Endpoint, Insecure, CookieFile)
-	//	if err != nil {
-	//		fmt.Println(err)
-	//		os.Exit(1)
-	//	}
-	//	fmt.Println("ufmclient: ", UfmClient)
-	//},
 }
 
 func Execute() {
@@ -38,7 +29,6 @@ func GetUfmClient() (*ufm.UfmClient){
 	return UfmClient
 }
 
-// For manpage generation (see bcachectl_man.go)
 func GetRootCmd() *cobra.Command {
 	return rootCmd
 }
@@ -54,18 +44,20 @@ var UfmClient *ufm.UfmClient
 var Format string
 
 //Pkeys flags
-//var PkGuids bool
-//var PkPorts bool
-var PkKeysOnly bool
-var PkIndex0 bool
-var PkIpoib bool
-var PkMtuLimit int
-var PkRateLimit float64
+var (
+PkKeysOnly bool
+PkIndex0 bool
+PkIpoIb bool
+PkMembership string
+)
+
+var (
+PortsFilters string
+PortsOutputBrief bool
+)
 
 
 //Systems filters
-//var SystemsIp string
-//var SystemsName string
 var (
 	SystemsBrief    bool
 	SystemsIP       string
@@ -93,18 +85,25 @@ func Init() {
 	rootCmd.AddCommand(pkeysCmd)
 	pkeysCmd.AddCommand(pkeysListCmd)
 	pkeysListCmd.Flags().BoolVarP(&PkKeysOnly, "keys-only", "", false, "list only keys without guid info")
+
+	pkeysCmd.AddCommand(pkeysAddCmd)
 	//pkeysCmd.PersistentFlags().BoolVarP(&PkGuids, "guids", "", false, "include guid data for pkeys")
 	//pkeysCmd.PersistentFlags().BoolVarP(&PkPorts, "ports", "", false, "include guid data for pkeys")
 	//pkeysCmd.AddCommand(pkeysGetCmd)
 	//pkeysCmd.AddCommand(pkeysCreateCmd)
-	//pkeysCreateCmd.Flags().BoolVarP(&PkIndex0, "index0", "", true, "set index0 by default")
-	//pkeysCreateCmd.Flags().BoolVarP(&PkIpoib, "ipoib", "", true, "set ip over ib")
+	pkeysAddCmd.Flags().BoolVarP(&PkIndex0, "index0", "", true, "set index0 by default")
+	pkeysAddCmd.Flags().BoolVarP(&PkIpoIb, "ipoib", "", true, "set ip over ib")
+	pkeysAddCmd.Flags().StringVarP(&PkMembership, "membership", "", "limited", "type of membership (full or limited)")
+
+	pkeysCmd.AddCommand(pkeysRemoveCmd)
 	//pkeysCreateCmd.Flags().IntVarP(&PkMtuLimit, "mtu-limit", "", 4, "mtu limit")
 	//pkeysCreateCmd.Flags().FloatVarP(&PkRateLimit, "rate-limit", "", "2.5", "members must have a higher rate than this to be allowed to connect")
 	//pkeysCmd.AddCommand(pkeysMemberCmd)
 
 	rootCmd.AddCommand(portsCmd)
 	portsCmd.AddCommand(portsListCmd)
+	portsListCmd.Flags().StringVarP(&PortsFilters, "filters", "", "", "comma delimited list of filters to try and apply to list query, eg. active=true,system=mycomputer,sys_type=Switch")	
+	portsListCmd.Flags().BoolVarP(&PortsOutputBrief, "output-brief", "", true, "only print brief output with limited fields. If this is false, only json is output")
 	//portsListCmd.Flags().StringVarP(&PortsExtraColumns, "extra-columns", "", "",  "comma delimited list of extra columns to print in table mode")
 	portsCmd.AddCommand(portsGetCmd)
 

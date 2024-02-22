@@ -50,7 +50,7 @@ func GetClient(username string, password string, endpoint string, insecure bool,
 		CurrentCookie: nil,
 	}
 	// Load cookies file check expiry
-	//fmt.Println("reading cookie file")
+	// never expires ??
 	bytes, err := ioutil.ReadFile(cookieFile)
 	if err == nil && len(bytes) > 0{
 		err = json.Unmarshal(bytes, &u.CurrentCookie)
@@ -67,7 +67,6 @@ func GetClient(username string, password string, endpoint string, insecure bool,
 		}
 		//fmt.Println("succeeded using existing cookie.")
 	} else {
-		// Else authenticate and write out cookies file and set current cookie
 		err := u.Auth()
 		if err != nil {
 			return nil, err
@@ -169,13 +168,4 @@ func (u *UfmClient) Post(path string, data io.Reader) (*http.Response, error) {
 	
 }
 
-
-//func (u *ufmClient) Post(insecure bool, path string, args ...string) (*http.Response, error) {
-//	tr := &http.Transport{
-//        	TLSClientConfig: &tls.Config{InsecureSkipVerify: insecure},
-//    	}
-//	client := &http.Client{Transport: tr}
-//	contentType := "application/x-www-form-urlencoded"
-//	return client.Post(u.Endpoint+path, contentType, )
-//}
 

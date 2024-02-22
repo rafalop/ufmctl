@@ -26,8 +26,6 @@ func (u *UfmClient) GetSystems(filters []string) (ret string, err error){
 		if err != nil {
 			return
 		}	
-		//systems := []System{}
-		//json.Unmarshal(bodyBytes, &systems)
 		ret = string(bodyBytes)
 		return
 }

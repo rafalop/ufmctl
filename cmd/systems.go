@@ -68,12 +68,12 @@ func printSystemsTable(systems string) {
 	t.Style().Options = table.OptionsNoBordersAndSeparators
 	rowConfigAutomerge := table.RowConfig{AutoMerge: true}
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"STATE", "ROLE", "TYPE", "FW_VERSION", "IP", "SYS_NAME", "PORTS"})
+	t.AppendHeader(table.Row{"STATE", "ROLE", "TYPE", "FW_VERSION", "IP", "GUID", "SYS_NAME", "PORTS"})
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 7, AutoMerge: true},
 	})
 	for _, system := range gjson.Get(systems, "#(*)#").Array() {
-		t.AppendRow(table.Row{system.Get("state").String(), system.Get("role").String(), system.Get("type").String(), system.Get("fw_version").String(), system.Get("ip").String(), system.Get("system_name").String()}, rowConfigAutomerge)
+		t.AppendRow(table.Row{system.Get("state").String(), system.Get("role").String(), system.Get("type").String(), system.Get("fw_version").String(), system.Get("ip").String(), system.Get("guid"), system.Get("system_name").String()}, rowConfigAutomerge)
 	}
 	fmt.Println(t.Render())
 }

@@ -11,7 +11,7 @@ import (
 var pkeysCmd = &cobra.Command{
 	Use:   "pkeys {subcommand} {args}",
 	Short: "Perform pkey operations",
-	Long:  "Get or modify pkey settings",
+	Long:  "list, get or modify pkey settings",
 	//Run: func(cmd *cobra.Command, args []string) {
 	//	if len(args) < 1 {
 	//		fmt.Println("pkeys requires at least one subcommand.")
@@ -25,7 +25,7 @@ var pkeysListCmd = &cobra.Command{
 	Short: "List pkeys",
 	Run: func(cmd *cobra.Command, args []string) {
 		u := GetUfmClient()
-		pkeys, err := u.GetPkeys()
+		pkeys, err := u.PkeyList()
 		if err != nil {
 			ExitError(err)
 		}
@@ -47,7 +47,7 @@ var pkeysListCmd = &cobra.Command{
 }
 
 
-func printPkeysTable(pkeys string, style string) {
+func printPkeysTable(pkeys string, format string) {
 	t := table.NewWriter()
 	t.Style().Options = table.OptionsNoBordersAndSeparators
 	t.AppendHeader(table.Row{"PKEY", "GUID", "MSHIP", "INDEX0", "PORT_T", "IP", "PORT_NO", "DNAME", "IPOIB", "HOSTNAME", "NODE_DESC"})
@@ -57,13 +57,42 @@ func printPkeysTable(pkeys string, style string) {
 			t.AppendRow(table.Row{pkey, g.Get("guid").String(), g.Get("membership").String(), g.Get("index0").String(), g.Get("port_type").String(), g.Get("ip").String(), g.Get("port_number").String(), g.Get("dname").String(), rec.Get("ip_over_ib").String(), g.Get("hostname").String(), g.Get("node_description").String() })
 		}
 	}
-	if style == "csv" {
+	if format == "csv" {
 		fmt.Println(t.RenderCSV())
 	} else {
 		fmt.Println(t.Render())
 	}
 }
 
+var pkeysAddCmd = &cobra.Command{
+	Use:   "add {pkey} {guid1} {guid2} {guid3}...",
+	Short: "Add members (GUIDs) to a pkey",
+	Args: cobra.MinimumNArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		u := GetUfmClient()
+		fmt.Printf("addings guids to pkey=%s, guids=%v  ipoib=%t  index0=%t  membership=%s\n", args[0], args[1:], PkIpoIb, PkIndex0, PkMembership)
+		err := u.PkeyAddGuids(args[0], PkIndex0, PkIpoIb, PkMembership, args[1:])
+		if err != nil {
+			ExitError(err)
+		}
+		os.Exit(0)
+	},
+}
+
+var pkeysRemoveCmd = &cobra.Command{
+	Use:   "remove {pkey} {guid1} {guid2} {guid3}...",
+	Short: "Remove members (GUIDs) from pkey",
+	Args: cobra.MinimumNArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		u := GetUfmClient()
+		fmt.Printf("removing guids from pkey=%s, guids=%v\n" ,args[0], args[1:])
+		err := u.PkeyRemoveGuids(args[0], args[1:])
+		if err != nil {
+			ExitError(err)
+		}
+		os.Exit(0)
+	},
+}
 
 //var pkeysCreateCmd = &cobra.Command{
 //	Use:   "create {pkey}",
