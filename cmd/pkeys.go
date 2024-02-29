@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"os"
 	"fmt"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
-	"github.com/jedib0t/go-pretty/v6/table"
+	"os"
 )
 
 var pkeysCmd = &cobra.Command{
@@ -15,10 +15,9 @@ var pkeysCmd = &cobra.Command{
 	//Run: func(cmd *cobra.Command, args []string) {
 	//	if len(args) < 1 {
 	//		fmt.Println("pkeys requires at least one subcommand.")
-	//	}	
+	//	}
 	//},
 }
-
 
 var pkeysListCmd = &cobra.Command{
 	Use:   "list",
@@ -37,7 +36,7 @@ var pkeysListCmd = &cobra.Command{
 		}
 		if Format == "json" {
 			fmt.Println(pkeys)
-		}else if Format == "csv"{
+		} else if Format == "csv" {
 			printPkeysTable(pkeys, "csv")
 		} else { // assume table
 			printPkeysTable(pkeys, "table")
@@ -46,7 +45,6 @@ var pkeysListCmd = &cobra.Command{
 	},
 }
 
-
 func printPkeysTable(pkeys string, format string) {
 	t := table.NewWriter()
 	t.Style().Options = table.OptionsNoBordersAndSeparators
@@ -54,7 +52,7 @@ func printPkeysTable(pkeys string, format string) {
 	for pkey, rec := range gjson.Parse(pkeys).Map() {
 		guidsArray := rec.Get("guids").Array()
 		for _, g := range guidsArray {
-			t.AppendRow(table.Row{pkey, g.Get("guid").String(), g.Get("membership").String(), g.Get("index0").String(), g.Get("port_type").String(), g.Get("ip").String(), g.Get("port_number").String(), g.Get("dname").String(), rec.Get("ip_over_ib").String(), g.Get("hostname").String(), g.Get("node_description").String() })
+			t.AppendRow(table.Row{pkey, g.Get("guid").String(), g.Get("membership").String(), g.Get("index0").String(), g.Get("port_type").String(), g.Get("ip").String(), g.Get("port_number").String(), g.Get("dname").String(), rec.Get("ip_over_ib").String(), g.Get("hostname").String(), g.Get("node_description").String()})
 		}
 	}
 	if format == "csv" {
@@ -67,7 +65,7 @@ func printPkeysTable(pkeys string, format string) {
 var pkeysAddCmd = &cobra.Command{
 	Use:   "add {pkey} {guid1} {guid2} {guid3}...",
 	Short: "Add members (GUIDs) to a pkey",
-	Args: cobra.MinimumNArgs(2),
+	Args:  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		u := GetUfmClient()
 		fmt.Printf("addings guids to pkey=%s, guids=%v  ipoib=%t  index0=%t  membership=%s\n", args[0], args[1:], PkIpoIb, PkIndex0, PkMembership)
@@ -82,10 +80,10 @@ var pkeysAddCmd = &cobra.Command{
 var pkeysRemoveCmd = &cobra.Command{
 	Use:   "remove {pkey} {guid1} {guid2} {guid3}...",
 	Short: "Remove members (GUIDs) from pkey",
-	Args: cobra.MinimumNArgs(2),
+	Args:  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		u := GetUfmClient()
-		fmt.Printf("removing guids from pkey=%s, guids=%v\n" ,args[0], args[1:])
+		fmt.Printf("removing guids from pkey=%s, guids=%v\n", args[0], args[1:])
 		err := u.PkeyRemoveGuids(args[0], args[1:])
 		if err != nil {
 			ExitError(err)
@@ -142,5 +140,3 @@ var pkeysRemoveCmd = &cobra.Command{
 //		fmt.Printf("Pkey %s created successfully.\n", args[0])
 //	},
 //}
-
-

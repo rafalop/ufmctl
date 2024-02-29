@@ -1,12 +1,14 @@
 package cmd
 
 import (
+//	"os"
 	"fmt"
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
-	"github.com/tidwall/gjson"
-	"os"
+	"ufmctl/pkg/ufm"
+	//"io"
+	//"encoding/json"
 	"strconv"
+//"github.com/tidwall/gjson"
 )
 
 var systemsCmd = &cobra.Command{
@@ -16,9 +18,19 @@ var systemsCmd = &cobra.Command{
 	//Run: func(cmd *cobra.Command, args []string) {
 	//	if len(args) < 1 {
 	//		fmt.Println("pkeys requires at least one subcommand.")
-	//	}
+	//	}	
 	//},
 }
+	//SystemsBrief    bool
+	//SystemsIP       string
+	//SystemsType     string
+	//SystemsModel    string
+	//SystemsRole     string
+	//SystemsPeerName string
+	//SystemsChassis  bool
+	//SystemsPorts    bool
+	//SystemsInRack   bool
+	//SystemsComputes string
 
 var systemsListCmd = &cobra.Command{
 	Use:   "list",
@@ -55,25 +67,29 @@ var systemsListCmd = &cobra.Command{
 		}
 		//systemsJson, err := json.Marshal(systems)
 		//fmt.Println(string(systemsJson))
-		if Format == "json" {
-			fmt.Println(string(systems))
-		} else {
-			printSystemsTable(systems)
-		}
+		printSystemsTable(systems)
 	},
 }
 
-func printSystemsTable(systems string) {
-	t := table.NewWriter()
-	t.Style().Options = table.OptionsNoBordersAndSeparators
-	rowConfigAutomerge := table.RowConfig{AutoMerge: true}
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"STATE", "ROLE", "TYPE", "FW_VERSION", "IP", "GUID", "SYS_NAME", "PORTS"})
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 7, AutoMerge: true},
-	})
-	for _, system := range gjson.Get(systems, "#(*)#").Array() {
-		t.AppendRow(table.Row{system.Get("state").String(), system.Get("role").String(), system.Get("type").String(), system.Get("fw_version").String(), system.Get("ip").String(), system.Get("guid"), system.Get("system_name").String()}, rowConfigAutomerge)
-	}
-	fmt.Println(t.Render())
+func printSystemsTable(systems []ufm.System) {
+		PrintColumn("SYS_NAME", 50)
+		PrintColumn("STATE", 8)
+		PrintColumn("ROLE", 10)	
+		PrintColumn("TYPE", 10)	
+		PrintColumn("FW_VERSION", 20)	
+		PrintColumn("IP", 20)	
+		fmt.Printf("\n")
+		for _, system := range systems {
+			if len(system.SystemName) > 50 {
+				PrintColumn(system.SystemName[:49], 50)
+			} else {
+				PrintColumn(system.SystemName, 50)
+			}
+			PrintColumn(system.State, 8)
+			PrintColumn(system.Role, 10)
+			PrintColumn(system.Type, 10)
+			PrintColumn(system.FirmwareVersion, 20)
+			PrintColumn(system.IP, 20)
+			fmt.Printf("\n")
+		}
 }

@@ -1,14 +1,14 @@
 package ufm
 
 import (
-	"fmt"
-	"net/http"
-	"net/url"
 	"crypto/tls"
-	"strings"
+	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"encoding/json"
+	"net/http"
+	"net/url"
+	"strings"
 	//"time"
 	"os"
 )
@@ -17,17 +17,18 @@ func DoNothing() {
 	fmt.Println("nothing.")
 	os.Exit(0)
 }
+
 // need a client object that executes http requests returns json
 
 type UfmClient struct {
-	Insecure bool
-	Username string
-	Password string
-	Endpoint string
+	Insecure      bool
+	Username      string
+	Password      string
+	Endpoint      string
 	CurrentCookie *http.Cookie
 }
 
-func (u *UfmClient) writeCookieFile(cookieFile string){
+func (u *UfmClient) writeCookieFile(cookieFile string) {
 	// write out current cookie to cookie file
 	bytes, err := json.Marshal(u.CurrentCookie)
 	if err != nil {
@@ -40,8 +41,8 @@ func (u *UfmClient) writeCookieFile(cookieFile string){
 	}
 }
 
-func GetClient(username string, password string, endpoint string, insecure bool, cookieFile string) (*UfmClient, error){
-	u:= &UfmClient{
+func GetClient(username string, password string, endpoint string, insecure bool, cookieFile string) (*UfmClient, error) {
+	u := &UfmClient{
 		Username: username,
 		Password: password,
 		Endpoint: endpoint,
@@ -52,18 +53,18 @@ func GetClient(username string, password string, endpoint string, insecure bool,
 	// Load cookies file check expiry
 	// never expires ??
 	bytes, err := ioutil.ReadFile(cookieFile)
-	if err == nil && len(bytes) > 0{
+	if err == nil && len(bytes) > 0 {
 		err = json.Unmarshal(bytes, &u.CurrentCookie)
 		if err != nil {
 			return nil, err
-		//}
-		//if ! time.Now().Before(u.CurrentCookie.Expires) {
-		//	fmt.Println(time.Now(), u.CurrentCookie.Expires)
-		//	err := u.Auth(insecure)
-		//	if err != nil {
-		//		return nil, err
-		//	}
-		//	u.writeCookieFile(cookieFile)
+			//}
+			//if ! time.Now().Before(u.CurrentCookie.Expires) {
+			//	fmt.Println(time.Now(), u.CurrentCookie.Expires)
+			//	err := u.Auth(insecure)
+			//	if err != nil {
+			//		return nil, err
+			//	}
+			//	u.writeCookieFile(cookieFile)
 		}
 		//fmt.Println("succeeded using existing cookie.")
 	} else {
@@ -76,10 +77,10 @@ func GetClient(username string, password string, endpoint string, insecure bool,
 	return u, nil
 }
 
-func (u *UfmClient) Auth()(error) {
+func (u *UfmClient) Auth() error {
 	// Check if cookies file exists and has content
 	// UFM uses cookie after user/pass auth
-	path := "/dologin"	
+	path := "/dologin"
 	form := url.Values{
 		"httpd_username": {u.Username},
 		"httpd_password": {u.Password},
@@ -96,11 +97,11 @@ func (u *UfmClient) Auth()(error) {
 		return err
 	}
 	tr := &http.Transport{
-        	TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
-    	}
-    	checkRedirect := func(req *http.Request, via []*http.Request) error {
-    	    return http.ErrUseLastResponse
-    	}
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
+	}
+	checkRedirect := func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
 	client := &http.Client{Transport: tr, CheckRedirect: checkRedirect}
 	fmt.Println("sending request to", u.Endpoint+path)
 	//fmt.Println("req", req)
@@ -122,13 +123,13 @@ func (u *UfmClient) Auth()(error) {
 // raw get with queries
 func (u *UfmClient) Get(path string, queries []string) (*http.Response, error) {
 	tr := &http.Transport{
-        	TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
-    	}
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
+	}
 	req, err := http.NewRequest("GET", u.Endpoint+path, nil)
 	req.AddCookie(u.CurrentCookie)
 
 	q := req.URL.Query()
-	for _,query := range queries {
+	for _, query := range queries {
 		//fmt.Fprintln(os.Stderr, "processing query:", query)
 		a := strings.Split(query, "=")[0]
 		b := strings.Split(query, "=")[1]
@@ -145,15 +146,15 @@ func (u *UfmClient) Get(path string, queries []string) (*http.Response, error) {
 	//bodyBytes, _ := io.ReadAll(resp.Body)
 	//jsonData, _ := json.Marshal(bodyBytes)
 	//fmt.Println("resp:", string(bodyBytes))
-	return resp, err	
-	
+	return resp, err
+
 }
 
 // raw put
 func (u *UfmClient) Post(path string, data io.Reader) (*http.Response, error) {
 	tr := &http.Transport{
-        	TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
-    	}
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
+	}
 	req, err := http.NewRequest("POST", u.Endpoint+path, data)
 	req.AddCookie(u.CurrentCookie)
 
@@ -164,8 +165,6 @@ func (u *UfmClient) Post(path string, data io.Reader) (*http.Response, error) {
 	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
 	//fmt.Fprintln(os.Stderr, "req:", req)
-	return resp, err	
-	
+	return resp, err
+
 }
-
-

@@ -1,12 +1,11 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-	"ufmctl/pkg/ufm"
 	"fmt"
+	"github.com/spf13/cobra"
 	"os"
+	"ufmctl/pkg/ufm"
 )
-
 
 var rootCmd = &cobra.Command{
 	Use:   "ufmctl",
@@ -18,8 +17,8 @@ func Execute() {
 	rootCmd.Execute()
 }
 
-func GetUfmClient() (*ufm.UfmClient){
-	
+func GetUfmClient() *ufm.UfmClient {
+
 	var err error
 	UfmClient, err = ufm.GetClient(Username, Password, Endpoint, Insecure, CookieFile)
 	if err != nil {
@@ -33,7 +32,6 @@ func GetRootCmd() *cobra.Command {
 	return rootCmd
 }
 
-
 var Username string
 var Password string
 var Endpoint string
@@ -43,21 +41,20 @@ var CookieFile string
 var UfmClient *ufm.UfmClient
 var Format string
 
-//Pkeys flags
+// Pkeys flags
 var (
-PkKeysOnly bool
-PkIndex0 bool
-PkIpoIb bool
-PkMembership string
+	PkKeysOnly   bool
+	PkIndex0     bool
+	PkIpoIb      bool
+	PkMembership string
 )
 
 var (
-PortsFilters string
-PortsOutputBrief bool
+	PortsFilters     string
+	PortsOutputBrief bool
 )
 
-
-//Systems filters
+// Systems filters
 var (
 	SystemsBrief    bool
 	SystemsIP       string
@@ -78,7 +75,7 @@ func Init() {
 	rootCmd.PersistentFlags().StringVarP(&Endpoint, "endpoint", "e", "", "UFM API endpoint")
 	rootCmd.PersistentFlags().BoolVarP(&Insecure, "insecure", "i", false, "use https without cert validation")
 	rootCmd.PersistentFlags().BoolVarP(&PrintStatus, "status", "s", true, "print status to stderr")
-	rootCmd.PersistentFlags().StringVarP(&CookieFile, "cookiefile", "c", "ufm-cookies.txt",  "file to store cookies")
+	rootCmd.PersistentFlags().StringVarP(&CookieFile, "cookiefile", "c", "ufm-cookies.txt", "file to store cookies")
 	rootCmd.MarkPersistentFlagRequired("username")
 	rootCmd.MarkPersistentFlagRequired("password")
 	rootCmd.MarkPersistentFlagRequired("endpoint")
@@ -102,11 +99,10 @@ func Init() {
 
 	rootCmd.AddCommand(portsCmd)
 	portsCmd.AddCommand(portsListCmd)
-	portsListCmd.Flags().StringVarP(&PortsFilters, "filters", "", "", "comma delimited list of filters to try and apply to list query, eg. active=true,system=mycomputer,sys_type=Switch")	
+	portsListCmd.Flags().StringVarP(&PortsFilters, "filters", "", "", "comma delimited list of filters to try and apply to list query, eg. active=true,system=mycomputer,sys_type=Switch")
 	portsListCmd.Flags().BoolVarP(&PortsOutputBrief, "output-brief", "", true, "only print brief output with limited fields. If this is false, only json is output")
 	//portsListCmd.Flags().StringVarP(&PortsExtraColumns, "extra-columns", "", "",  "comma delimited list of extra columns to print in table mode")
 	portsCmd.AddCommand(portsGetCmd)
-
 
 	rootCmd.AddCommand(systemsCmd)
 	//rootCmd.PersistentFlags().StringVarP(&SystemsIp, "ip", "", "ip address for system to get info for")
@@ -123,13 +119,9 @@ func Init() {
 	systemsListCmd.Flags().BoolVar(&SystemsPorts, "ports", false, "Specifies whether to provide detailed port descriptions or only port names")
 	systemsListCmd.Flags().BoolVar(&SystemsInRack, "in-rack", false, "Specifies whether to get all systems that belong to a rack or those that do not belong to any rack")
 	systemsCmd.Flags().StringVar(&SystemsComputes, "computes", "", "Specifies whether to retrieve systems that are allocated or free for logical servers")
-	
-
-
 
 	//maybe create the ufm object here get token or whatever
-	
-	
+
 }
 
 func PrintColumn(val string, padding int) {
@@ -140,4 +132,3 @@ func ExitError(err error) {
 	fmt.Println(err)
 	os.Exit(1)
 }
-

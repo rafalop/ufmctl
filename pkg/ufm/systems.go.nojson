@@ -1,0 +1,87 @@
+package ufm
+
+import (
+	//"bytes"
+	//"errors"
+	"io"
+//	"os"
+	"encoding/json"
+	"fmt"
+)
+
+func systemsdonnothing(){
+	fmt.Println("nothing.")
+}
+
+//type GuidObj struct {
+//	Guid string `json:"guid"`
+//	Membership string `json:"membership"`
+//	Index0 bool `json:"index0"`
+//	PortType string `json:"port_type"`
+//	Ip string 	`json:"ip"`
+//	Hostname string `json:"hostname"`
+//	PortNumber int `json:"port_number"`
+//	Dname string	`json:"dname"`
+//	NodeDescription	string `json:"node_description"`
+//}
+//type Pkey struct {
+//	Guids []GuidObj `json:"guids"`
+//	Partition string `json:"partition"`
+//	IpOverIb bool	`json:"ip_over_ib"`
+//}
+//
+
+const SystemsPath = "/ufmRestV2/resources/systems"
+
+type System struct {
+	CPUsNumber         int      `json:"cpus_number,omitempty"`
+	IP                 string   `json:"ip,omitempty"`
+	RAM                int      `json:"ram,omitempty"`
+	FirmwareVersion    string   `json:"fw_version,omitempty"`
+	MirroringTemplate  bool     `json:"mirroring_template,omitempty"`
+	CPUSpeed           int      `json:"cpu_speed,omitempty"`
+	IsManualIP         bool     `json:"is_manual_ip,omitempty"`
+	Technology         string   `json:"technology,omitempty"`
+	PSID               string   `json:"psid,omitempty"`
+	GUID               string   `json:"guid,omitempty"`
+	Severity           string   `json:"severity,omitempty"`
+	Script             string   `json:"script,omitempty"`
+	Capabilities       []string `json:"capabilities,omitempty"`
+	State              string   `json:"state,omitempty"`
+	Role               string   `json:"role,omitempty"`
+	Type               string   `json:"type,omitempty"`
+	SMMode             string   `json:"sm_mode,omitempty"`
+	Vendor             string   `json:"vendor,omitempty"`
+	Description        string   `json:"description,omitempty"`
+	HasUFMAgent        bool     `json:"has_ufm_agent,omitempty"`
+	ServerOperationMode string  `json:"server_operation_mode,omitempty"`
+	Groups             []string `json:"groups,omitempty"`
+	TotalAlarms        int      `json:"total_alarms,omitempty"`
+	Temperature        string   `json:"temperature,omitempty"`
+	SystemName         string   `json:"system_name,omitempty"`
+	SWVersion          string   `json:"sw_version,omitempty"`
+	SystemGUID         string   `json:"system_guid,omitempty"`
+	Name               string   `json:"name,omitempty"`
+	URL                string   `json:"url,omitempty"`
+	Modules            []string `json:"modules,omitempty"`
+	CPUType            string   `json:"cpu_type,omitempty"`
+	IsManaged          bool     `json:"is_managed,omitempty"`
+	Model              string   `json:"model,omitempty"`
+	Ports              []string `json:"ports,omitempty"`
+}
+
+
+// get all systems, pass in list of filters such as [ip=1.1.1.1, name=mycomputer,...]
+func (u *UfmClient) GetSystems(filters []string) ([]System, error){
+		resp, err := u.Get(SystemsPath, filters) 
+		if err != nil {
+			return nil,err
+		}
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}	
+		systems := []System{}
+		json.Unmarshal(bodyBytes, &systems)
+		return systems, nil
+}

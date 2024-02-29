@@ -2,38 +2,36 @@ package ufm
 
 import (
 	"errors"
-	"io"
-	"github.com/tidwall/gjson"
 	"fmt"
+	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"io"
 	"strconv"
 	"strings"
-//	"os"
+	// "os"
 )
 
-func don_nothing(){
+func don_nothing() {
 	fmt.Println("nothing.")
 }
 
 const PortsPath = "/ufmRestV2/resources/ports"
 
-
 func (u *UfmClient) PortsGet(portName string) (ret string, err error) {
-	path := PortsPath+"/"+portName
+	path := PortsPath + "/" + portName
 	resp, err := u.Get(path, []string{})
 	if err != nil {
 		return
 	}
 	bodyBytes, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode <200 || resp.StatusCode >=300 {
-		err = errors.New("Error getting switchport data: "+resp.Status+" ("+string(bodyBytes)+")")
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		err = errors.New("Error getting switchport data: " + resp.Status + " (" + string(bodyBytes) + ")")
 		return
 	}
 	ret = string(bodyBytes)
 	return
-	
-}
 
+}
 
 func (u *UfmClient) PortsGetAllBrief(filters string) (ret string, err error) {
 	ret = "[]"
@@ -60,9 +58,7 @@ func (u *UfmClient) PortsGetAllBrief(filters string) (ret string, err error) {
 		}
 	}
 	return
-	
-	
-	
+
 }
 
 func (u *UfmClient) PortsGetAll(filters string) (ret string, err error) {
@@ -74,14 +70,14 @@ func (u *UfmClient) PortsGetAll(filters string) (ret string, err error) {
 	}
 	resp, err := u.Get(PortsPath, filtersArray)
 	if err != nil {
-		return 
+		return
 	}
 	bodyBytes, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode <200 || resp.StatusCode >=300 {
-		err = errors.New("Error getting switchport data: "+resp.Status+" ("+string(bodyBytes)+")")
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		err = errors.New("Error getting switchport data: " + resp.Status + " (" + string(bodyBytes) + ")")
 		return
 	}
 	ret = string(bodyBytes)
 	return
-	
+
 }
