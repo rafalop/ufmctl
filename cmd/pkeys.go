@@ -11,17 +11,12 @@ import (
 var pkeysCmd = &cobra.Command{
 	Use:   "pkeys {subcommand} {args}",
 	Short: "Perform pkey operations",
-	Long:  "list, get or modify pkey settings",
-	//Run: func(cmd *cobra.Command, args []string) {
-	//	if len(args) < 1 {
-	//		fmt.Println("pkeys requires at least one subcommand.")
-	//	}
-	//},
+	Long:  "list pkeys or modify pkey data",
 }
 
 var pkeysListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List pkeys",
+	Short: "List pkeys and members",
 	Run: func(cmd *cobra.Command, args []string) {
 		u := GetUfmClient()
 		pkeys, err := u.PkeyList()
@@ -64,7 +59,7 @@ func printPkeysTable(pkeys string, format string) {
 
 var pkeysAddCmd = &cobra.Command{
 	Use:   "add {pkey} {guid1} {guid2} {guid3}...",
-	Short: "Add members (GUIDs) to a pkey",
+	Short: "Add members (guids) to a pkey",
 	Args:  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		u := GetUfmClient()
@@ -77,9 +72,29 @@ var pkeysAddCmd = &cobra.Command{
 	},
 }
 
+var pkeysSetCmd = &cobra.Command{
+	Use:   "set {pkey} {guid1} {guid2} {guid3}...",
+	Short: "Set (overwrite) current pkey with provided guids and flags",
+	Long:  "Warning - this command can be dangerous. If no flags are provided for index0, ipoib, membership default settings will overwrite what is already in place for the pkey!",
+	Args:  cobra.MinimumNArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		u := GetUfmClient()
+		fmt.Printf("This will overwrite ALL current settings and memberships for pkey %s with the following:\n\n pkey=%s  index=%t  ip_over_ib=%t  membership=%s  guids=%v\n\n", args[0], args[0], PkIndex0, PkIpoIb, PkMembership, args[1:])
+		if ConfirmPrompt("Are you sure you want to continue? Y/N") {
+			err := u.PkeySetGuids(args[0], PkIndex0, PkIpoIb, PkMembership, args[1:])
+			if err != nil {
+				ExitError(err)
+			}
+		} else {
+			fmt.Println("Aborting.")
+		}
+		os.Exit(0)
+	},
+}
+
 var pkeysRemoveCmd = &cobra.Command{
 	Use:   "remove {pkey} {guid1} {guid2} {guid3}...",
-	Short: "Remove members (GUIDs) from pkey",
+	Short: "Remove members (hosts or guids) from pkey",
 	Args:  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		u := GetUfmClient()
@@ -91,52 +106,3 @@ var pkeysRemoveCmd = &cobra.Command{
 		os.Exit(0)
 	},
 }
-
-//var pkeysCreateCmd = &cobra.Command{
-//	Use:   "create {pkey}",
-//	Short: "create a new pkey",
-//	Run: func(cmd *cobra.Command, args []string) {
-//		// command to connect to UFM goes here.
-//		// process json
-//		u:=GetUfmClient()
-//		data := &ufm.CreatePkeyData{
-//			Pkey: args[0],
-//			Index0: PkIndex0,
-//			IpOverIb: PkIpoib,
-//			MtuLimit: PkMtulimit,
-//			RateLimit: PkRateLimit,
-//		}
-//		err := u.CreatePkey(data)
-//		//var queries = make([]string, 0)
-//		if err != nil {
-//			fmt.Println(err)
-//			os.Exit(1)
-//		}
-//		fmt.Printf("Pkey %s created successfully.\n", args[0])
-//	},
-//}
-
-//var pkeysMemberCmd = &cobra.Command{
-//	Use:   "{pkey}",
-//	Short: "add/remove members from a pkey",
-//	Long: "update pkey memberships",
-//	Run: func(cmd *cobra.Command, args []string) {
-//		// command to connect to UFM goes here.
-//		// process json
-//		u:=GetUfmClient()
-//		data := &ufm.CreatePkeyData{
-//			Pkey: args[0],
-//			Index0: PkIndex0,
-//			IpOverIb: PkIpoib,
-//			MtuLimit: PkMtulimit,
-//			RateLimit: PkRateLimit,
-//		}
-//		err := u.CreatePkey(data)
-//		//var queries = make([]string, 0)
-//		if err != nil {
-//			fmt.Println(err)
-//			os.Exit(1)
-//		}
-//		fmt.Printf("Pkey %s created successfully.\n", args[0])
-//	},
-//}
