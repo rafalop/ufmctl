@@ -28,4 +28,4 @@ go build ufmctl
 ```
 
 # notes
-This will create a file (by default `ufm-cookies.txt`) in local dir to prevent re-authing, but will not delete it! fairly insecure if you don't delete the cookie after use, but loosely based on what nvidia has documented here https://docs.nvidia.com/networking/display/ufmenterpriserestapiv6152/rest+api+complementary+information ... a work in progress.
+This will create a file (by default `ufm-cookies.txt`) in local dir. Once this cookies file is there, you don't need to supply user and pass and it will prevent re-authing, but the cookies file will not be auto deleted! fairly insecure if you don't delete the cookie after use, but loosely based on what nvidia has documented here https://docs.nvidia.com/networking/display/ufmenterpriserestapiv6152/rest+api+complementary+information ... a work in progress.
