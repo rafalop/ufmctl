@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 	//"time"
+	"errors"
 	"os"
 )
 
@@ -34,11 +35,11 @@ func (u *UfmClient) writeCookieFile(cookieFile string) {
 	if err != nil {
 		fmt.Println("couldn't retrieve current cookie: ", err)
 	}
-	fmt.Println("writing out cookies.")
 	err = ioutil.WriteFile(cookieFile, bytes, 0644)
 	if err != nil {
 		fmt.Println("couldn't write out cookiefile: ", err)
 	}
+	fmt.Println("Wrote cookiefile to", cookieFile)
 }
 
 func GetClient(username string, password string, endpoint string, insecure bool, cookieFile string) (*UfmClient, error) {
@@ -66,14 +67,24 @@ func GetClient(username string, password string, endpoint string, insecure bool,
 			//	}
 			//	u.writeCookieFile(cookieFile)
 		}
-		//fmt.Println("succeeded using existing cookie.")
-	} else {
-		err := u.Auth()
-		if err != nil {
-			return nil, err
+		if len(u.CurrentCookie.Value) > 0 {
+			return u, nil
+		} else {
+			fmt.Fprint(os.Stderr, "Cookies file found, but cookie value is empty. Attempting re-auth with user/pass authentication.")
 		}
-		u.writeCookieFile(cookieFile)
+	} else {
+		fmt.Fprint(os.Stderr, "No valid cookie file found, attempting user/pass authentication.")
 	}
+
+	if username == "" || password == "" {
+		return nil, errors.New("No username or password not supplied, aborting.")
+	}
+	err = u.Auth()
+	if err != nil {
+		return nil, err
+	}
+	u.writeCookieFile(cookieFile)
+
 	return u, nil
 }
 
@@ -85,13 +96,7 @@ func (u *UfmClient) Auth() error {
 		"httpd_username": {u.Username},
 		"httpd_password": {u.Password},
 	}
-	//form := url.Values{}
-	//form.Add("httpd_username", u.Username)
-	//form.Add("httpd_password", u.Password)
-	fmt.Println("form:", form)
 	req, err := http.NewRequest("POST", u.Endpoint+path, strings.NewReader(form.Encode()))
-	fmt.Println(req.FormValue("httpd_username"))
-	fmt.Println(req.FormValue("httpd_password"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if err != nil {
 		return err
@@ -103,8 +108,6 @@ func (u *UfmClient) Auth() error {
 		return http.ErrUseLastResponse
 	}
 	client := &http.Client{Transport: tr, CheckRedirect: checkRedirect}
-	fmt.Println("sending request to", u.Endpoint+path)
-	//fmt.Println("req", req)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -156,6 +159,25 @@ func (u *UfmClient) Post(path string, data io.Reader) (*http.Response, error) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
 	}
 	req, err := http.NewRequest("POST", u.Endpoint+path, data)
+	req.AddCookie(u.CurrentCookie)
+
+	//fmt.Println("req:", req)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{Transport: tr}
+	resp, err := client.Do(req)
+	//fmt.Fprintln(os.Stderr, "req:", req)
+	return resp, err
+
+}
+
+// raw delete
+func (u *UfmClient) Delete(path string) (*http.Response, error) {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
+	}
+	req, err := http.NewRequest("DELETE", u.Endpoint+path, nil)
 	req.AddCookie(u.CurrentCookie)
 
 	//fmt.Println("req:", req)

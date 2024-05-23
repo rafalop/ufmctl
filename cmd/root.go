@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
+	"strings"
 	"ufmctl/pkg/ufm"
 )
 
@@ -15,6 +17,27 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	Init()
 	rootCmd.Execute()
+}
+
+func ConfirmPrompt(prompt string) bool {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Println(prompt)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input:", err)
+			continue
+		}
+
+		input = strings.TrimSpace(input)
+		if input == "" || strings.EqualFold(input, "y") {
+			return true
+		} else if strings.EqualFold(input, "n") {
+			return false
+		} else {
+			fmt.Println("Invalid input. Please enter 'Y' or 'N'.")
+		}
+	}
 }
 
 func GetUfmClient() *ufm.UfmClient {
@@ -76,8 +99,8 @@ func Init() {
 	rootCmd.PersistentFlags().BoolVarP(&Insecure, "insecure", "i", false, "use https without cert validation")
 	rootCmd.PersistentFlags().BoolVarP(&PrintStatus, "status", "s", true, "print status to stderr")
 	rootCmd.PersistentFlags().StringVarP(&CookieFile, "cookiefile", "c", "ufm-cookies.txt", "file to store cookies")
-	rootCmd.MarkPersistentFlagRequired("username")
-	rootCmd.MarkPersistentFlagRequired("password")
+	//rootCmd.MarkPersistentFlagRequired("username")
+	//rootCmd.MarkPersistentFlagRequired("password")
 	rootCmd.MarkPersistentFlagRequired("endpoint")
 	rootCmd.AddCommand(pkeysCmd)
 	pkeysCmd.AddCommand(pkeysListCmd)
@@ -90,9 +113,13 @@ func Init() {
 	//pkeysCmd.AddCommand(pkeysCreateCmd)
 	pkeysAddCmd.Flags().BoolVarP(&PkIndex0, "index0", "", true, "set index0 by default")
 	pkeysAddCmd.Flags().BoolVarP(&PkIpoIb, "ipoib", "", true, "set ip over ib")
-	pkeysAddCmd.Flags().StringVarP(&PkMembership, "membership", "", "limited", "type of membership (full or limited)")
+	pkeysAddCmd.Flags().StringVarP(&PkMembership, "membership", "", "full", "type of membership (full or limited)")
 
 	pkeysCmd.AddCommand(pkeysRemoveCmd)
+	pkeysCmd.AddCommand(pkeysSetCmd)
+	//pkeysRemoveCmd.AddCommand(pkeysRemoveGuidsCmd)
+	//pkeysRemoveCmd.AddCommand(pkeysRemoveHostsCmd)
+
 	//pkeysCreateCmd.Flags().IntVarP(&PkMtuLimit, "mtu-limit", "", 4, "mtu limit")
 	//pkeysCreateCmd.Flags().FloatVarP(&PkRateLimit, "rate-limit", "", "2.5", "members must have a higher rate than this to be allowed to connect")
 	//pkeysCmd.AddCommand(pkeysMemberCmd)
