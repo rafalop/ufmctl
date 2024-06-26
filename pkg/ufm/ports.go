@@ -11,11 +11,12 @@ import (
 	// "os"
 )
 
-func don_nothing() {
+func don_nothingz() {
 	fmt.Println("nothing.")
 }
 
 const PortsPath = "/ufmRestV2/resources/ports"
+const ActionsPath = "/ufmRestV2/actions"
 
 func (u *UfmClient) PortsGet(portName string) (ret string, err error) {
 	path := PortsPath + "/" + portName
@@ -78,6 +79,46 @@ func (u *UfmClient) PortsGetAll(filters string) (ret string, err error) {
 		return
 	}
 	ret = string(bodyBytes)
+	return
+
+}
+
+// For some reason, there is a separate api path for actions where ports get reset
+func (u *UfmClient) PortsAction(guid string, action string) (ret string, err error) {
+	path := ActionsPath
+	//{
+	//  "params": {
+	//    "port_id": "port_name"
+	//  },
+	//  "action": "enable,disable,reset",
+	//  "object_ids": [
+	//    "system_guid"
+	//  ],
+	//  "object_type": "System",
+	//  "description": " description",
+	//  "identifier": "id"
+	//}
+	// assume name is guid_1 ?
+	payload := "{}"
+	payload, _ = sjson.Set(payload, ".params.port_id", guid+"_1")
+	payload, _ = sjson.Set(payload, ".action", action)
+	payload, _ = sjson.Set(payload, ".object_ids", []string{"system_guid"})
+	payload, _ = sjson.Set(payload, ".object_type", "System")
+	payload, _ = sjson.Set(payload, ".description", action+guid)
+	payload, _ = sjson.Set(payload, ".identifier", "dummy")
+
+	fmt.Println("Payload:", payload)
+	fmt.Println("Path:", path)
+	//resp, err := u.Put(path, bytes.NewReader([]byte(payload))
+	//if err != nil {
+	//	return
+	//}
+	//bodyBytes, _ := io.ReadAll(resp.Body)
+	//if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+	//	err = errors.New("Error getting switchport data: " + resp.Status + " (" + string(bodyBytes) + ")")
+	//	return
+	//}
+	//ret = string(bodyBytes)
 	return
 
 }

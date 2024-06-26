@@ -154,6 +154,23 @@ func (u *UfmClient) Get(path string, queries []string) (*http.Response, error) {
 }
 
 // raw put
+func (u *UfmClient) Put(path string, data io.Reader) (*http.Response, error) {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
+	}
+	req, err := http.NewRequest("PUT", u.Endpoint+path, data)
+	req.AddCookie(u.CurrentCookie)
+
+	//fmt.Println("req:", req)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{Transport: tr}
+	resp, err := client.Do(req)
+	//fmt.Fprintln(os.Stderr, "req:", req)
+	return resp, err
+
+}
 func (u *UfmClient) Post(path string, data io.Reader) (*http.Response, error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},

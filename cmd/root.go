@@ -72,9 +72,16 @@ var (
 	PkMembership string
 )
 
+// Ports flags
 var (
-	PortsFilters     string
-	PortsOutputBrief bool
+	PortsFilters string
+)
+
+// VPorts flags
+var (
+	VPortsPhysport string
+	//VPortsFilters     string
+	//VPortsOutputBrief bool
 )
 
 // Systems filters
@@ -89,6 +96,7 @@ var (
 	SystemsPorts    bool
 	SystemsInRack   bool
 	SystemsComputes string
+	SystemsGuids    bool
 )
 
 func Init() {
@@ -127,9 +135,15 @@ func Init() {
 	rootCmd.AddCommand(portsCmd)
 	portsCmd.AddCommand(portsListCmd)
 	portsListCmd.Flags().StringVarP(&PortsFilters, "filters", "", "", "comma delimited list of filters to try and apply to list query, eg. active=true,system=mycomputer,sys_type=Switch")
-	portsListCmd.Flags().BoolVarP(&PortsOutputBrief, "output-brief", "", true, "only print brief output with limited fields. If this is false, only json is output")
 	//portsListCmd.Flags().StringVarP(&PortsExtraColumns, "extra-columns", "", "",  "comma delimited list of extra columns to print in table mode")
 	portsCmd.AddCommand(portsGetCmd)
+	portsCmd.AddCommand(portsActionCmd)
+
+	rootCmd.AddCommand(vPortsCmd)
+	vPortsCmd.AddCommand(vPortsListCmd)
+	//vPortsListCmd.Flags().StringVarP(&VPortsFilters, "filters", "", "", "comma delimited list of filters to try and apply to list query, eg. active=true,system=mycomputer,sys_type=Switch")
+	//vPortsListCmd.Flags().BoolVarP(&VPortsOutputBrief, "output-brief", "", true, "only print brief output with limited fields. If this is false, only json is output")
+	portsListCmd.Flags().StringVarP(&VPortsPhysport, "physport", "", "", "only get list of vports for this physical port")
 
 	rootCmd.AddCommand(systemsCmd)
 	//rootCmd.PersistentFlags().StringVarP(&SystemsIp, "ip", "", "ip address for system to get info for")
@@ -147,7 +161,8 @@ func Init() {
 	systemsListCmd.Flags().BoolVar(&SystemsInRack, "in-rack", false, "Specifies whether to get all systems that belong to a rack or those that do not belong to any rack")
 	systemsCmd.Flags().StringVar(&SystemsComputes, "computes", "", "Specifies whether to retrieve systems that are allocated or free for logical servers")
 
-	//maybe create the ufm object here get token or whatever
+	systemsCmd.AddCommand(systemsGetCmd)
+	systemsGetCmd.Flags().BoolVar(&SystemsGuids, "guids", false, "Only print guids and hca info. Intended to combine with pkey adding/removing for whole hosts")
 
 }
 
