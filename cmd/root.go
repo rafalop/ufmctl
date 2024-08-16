@@ -78,6 +78,10 @@ var (
 	PortsOutputBrief bool
 )
 
+var (
+	VPortsPhysport string
+)
+
 // Systems filters
 var (
 	SystemsBrief    bool
@@ -133,6 +137,10 @@ func Init() {
 	portsListCmd.Flags().BoolVarP(&PortsOutputBrief, "output-brief", "", true, "only print brief output with limited fields. If this is false, only json is output")
 	//portsListCmd.Flags().StringVarP(&PortsExtraColumns, "extra-columns", "", "",  "comma delimited list of extra columns to print in table mode")
 	portsCmd.AddCommand(portsGetCmd)
+
+	rootCmd.AddCommand(vPortsCmd)
+	vPortsCmd.AddCommand(vPortsListCmd)
+	portsListCmd.Flags().StringVarP(&VPortsPhysport, "physport", "", "", "only get list of vports for this physical port")
 
 	rootCmd.AddCommand(systemsCmd)
 	//rootCmd.PersistentFlags().StringVarP(&SystemsIp, "ip", "", "ip address for system to get info for")
