@@ -73,7 +73,7 @@ func GetClient(username string, password string, endpoint string, insecure bool,
 			fmt.Fprint(os.Stderr, "Cookies file found, but cookie value is empty. Attempting re-auth with user/pass authentication.")
 		}
 	} else {
-		fmt.Fprint(os.Stderr, "No valid cookie file found, attempting user/pass authentication.")
+		fmt.Fprint(os.Stderr, "No valid cookie file found, attempting user/pass authentication.\n")
 	}
 
 	if username == "" || password == "" {
@@ -143,6 +143,7 @@ func (u *UfmClient) Get(path string, queries []string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	//fmt.Println("Raw req: ", req)
 	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
 	//fmt.Fprintln(os.Stderr, "req:", req)
@@ -178,6 +179,24 @@ func (u *UfmClient) Delete(path string) (*http.Response, error) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
 	}
 	req, err := http.NewRequest("DELETE", u.Endpoint+path, nil)
+	req.AddCookie(u.CurrentCookie)
+
+	//fmt.Println("req:", req)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{Transport: tr}
+	resp, err := client.Do(req)
+	//fmt.Fprintln(os.Stderr, "req:", req)
+	return resp, err
+
+}
+
+func (u *UfmClient) Put(path string, data io.Reader) (*http.Response, error) {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
+	}
+	req, err := http.NewRequest("PUT", u.Endpoint+path, data)
 	req.AddCookie(u.CurrentCookie)
 
 	//fmt.Println("req:", req)

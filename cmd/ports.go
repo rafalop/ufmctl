@@ -23,6 +23,22 @@ var portsListCmd = &cobra.Command{
 		u := GetUfmClient()
 		var portsJson string
 		var err error
+		if PortsHost != "" {
+			// Unfortunately, we have to get the system GUID to get ports for a host
+			systems, err := u.GetSystems([]string{})
+			if err != nil {
+				ExitError(err)
+			}
+			for _, system := range gjson.Get(systems, "#(*)#").Array() {
+				systemName := system.Get("system_name").String()
+				if systemName == PortsHost {
+					systemID := system.Get("guid").String()
+					PortsFilters = PortsFilters + `system=` + systemID
+					break
+				}
+			}
+
+		}
 		if PortsOutputBrief {
 			portsJson, err = u.PortsGetAllBrief(PortsFilters)
 		} else {
@@ -31,6 +47,7 @@ var portsListCmd = &cobra.Command{
 		if err != nil {
 			ExitError(err)
 		}
+		//fmt.Println(portsJson)
 		if Format == "json" || !PortsOutputBrief {
 			fmt.Println(portsJson)
 		} else {
@@ -43,9 +60,10 @@ var portsListCmd = &cobra.Command{
 func printPortsTable(portsJson string, format string) {
 	t := table.NewWriter()
 	t.Style().Options = table.OptionsNoBordersAndSeparators
-	t.AppendHeader(table.Row{"NAME", "LG_STATE", "PHYS_STATE", "PATH"})
+	t.AppendHeader(table.Row{"NAME", "GUID", "LG_STATE", "PHYS_STATE", "SPEEDS", "DESC", "PEER"})
 	for _, p := range gjson.Parse(portsJson).Array() {
-		t.AppendRow(table.Row{p.Get("name").String(), p.Get("logical_state").String(), p.Get("physical_state").String(), p.Get("path").String()})
+		//t.AppendRow(table.Row{p.Get("name").String(), p.Get("guid"), p.Get("logical_state").String(), p.Get("physical_state").String(), p.Get("enabled_speed").String(), p.Get("path").String(), p.Get("peer_node_description").String()})
+		t.AppendRow(table.Row{p.Get("name").String(), p.Get("guid"), p.Get("logical_state").String(), p.Get("physical_state").String(), p.Get("enabled_speed").String(), p.Get("node_description"), p.Get("peer_node_description").String()})
 	}
 	if format == "csv" {
 		fmt.Println(t.RenderCSV())
