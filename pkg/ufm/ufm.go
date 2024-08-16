@@ -73,7 +73,7 @@ func GetClient(username string, password string, endpoint string, insecure bool,
 			fmt.Fprint(os.Stderr, "Cookies file found, but cookie value is empty. Attempting re-auth with user/pass authentication.")
 		}
 	} else {
-		fmt.Fprint(os.Stderr, "No valid cookie file found, attempting user/pass authentication.")
+		fmt.Fprint(os.Stderr, "No valid cookie file found, attempting user/pass authentication.\n")
 	}
 
 	if username == "" || password == "" {
@@ -143,6 +143,7 @@ func (u *UfmClient) Get(path string, queries []string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	//fmt.Println("Raw req: ", req)
 	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
 	//fmt.Fprintln(os.Stderr, "req:", req)

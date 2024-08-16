@@ -16,6 +16,7 @@ func don_nothing() {
 }
 
 const PortsPath = "/ufmRestV2/resources/ports"
+const ActionsPath = "/ufmRestV2/actions"
 
 func (u *UfmClient) PortsGet(portName string) (ret string, err error) {
 	path := PortsPath + "/" + portName
@@ -35,6 +36,11 @@ func (u *UfmClient) PortsGet(portName string) (ret string, err error) {
 
 func (u *UfmClient) PortsGetAllBrief(filters string) (ret string, err error) {
 	ret = "[]"
+	if filters == "" {
+		filters = `show_disabled=true`
+	} else {
+		filters = `show_disabled=true,` + filters
+	}
 	allPorts, err := u.PortsGetAll(filters)
 	if err != nil {
 		return
@@ -44,7 +50,12 @@ func (u *UfmClient) PortsGetAllBrief(filters string) (ret string, err error) {
 		if err != nil {
 			return
 		}
-		ret, err = sjson.Set(ret, strconv.Itoa(i)+".path", port.Get("path").String())
+		ret, err = sjson.Set(ret, strconv.Itoa(i)+".guid", port.Get("guid").String())
+		if err != nil {
+			return
+		}
+		path := strings.TrimRight(strings.TrimLeft(strings.Split(port.Get("path").String(), "/")[1], " "), " ")
+		ret, err = sjson.Set(ret, strconv.Itoa(i)+".path", path)
 		if err != nil {
 			return
 		}
@@ -53,6 +64,14 @@ func (u *UfmClient) PortsGetAllBrief(filters string) (ret string, err error) {
 			return
 		}
 		ret, err = sjson.Set(ret, strconv.Itoa(i)+".physical_state", port.Get("physical_state").String())
+		if err != nil {
+			return
+		}
+		ret, err = sjson.Set(ret, strconv.Itoa(i)+".enabled_speed", port.Get("enabled_speed").String())
+		if err != nil {
+			return
+		}
+		ret, err = sjson.Set(ret, strconv.Itoa(i)+".peer_node_description", port.Get("peer_node_description").String())
 		if err != nil {
 			return
 		}
@@ -68,6 +87,7 @@ func (u *UfmClient) PortsGetAll(filters string) (ret string, err error) {
 	} else {
 		filtersArray = strings.Split(filters, ",")
 	}
+	//fmt.Println("filtersarray: ", filtersArray)
 	resp, err := u.Get(PortsPath, filtersArray)
 	if err != nil {
 		return
@@ -81,3 +101,29 @@ func (u *UfmClient) PortsGetAll(filters string) (ret string, err error) {
 	return
 
 }
+
+// For some reason, there is a separate api path for actions where ports get reset
+//func (u *UfmClient) PortsAction(guid string, action string) (ret string, err error) {
+//	path := ActionsPath
+//	resp, err := u.Put(path, []string{})
+//	if err != nil {
+//		return
+//	}
+//	// assume name is guid_1 ?
+//	payload := "{}"
+//	jsonData := sjson.Set(payload, ".params.port_id", guid+"_1")
+//	jsonData := sjson.Set(payload, ".action", action)
+//	jsonData := sjson.Set(payload, ".object_ids", []string{"system_guid"})
+//	jsonData := sjson.Set(payload, ".object_type", "System")
+//	jsonData := sjson.Set(payload, ".description", action+guid)
+//	jsonData := sjson.Set(payload, ".identifier", ??)
+//
+//	bodyBytes, _ := io.ReadAll(resp.Body)
+//	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+//		err = errors.New("Error getting switchport data: " + resp.Status + " (" + string(bodyBytes) + ")")
+//		return
+//	}
+//	ret = string(bodyBytes)
+//	return
+//
+//}
