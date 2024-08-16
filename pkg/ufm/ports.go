@@ -54,8 +54,16 @@ func (u *UfmClient) PortsGetAllBrief(filters string) (ret string, err error) {
 		if err != nil {
 			return
 		}
-		path := strings.TrimRight(strings.TrimLeft(strings.Split(port.Get("path").String(), "/")[1], " "), " ")
-		ret, err = sjson.Set(ret, strconv.Itoa(i)+".path", path)
+		//path := strings.TrimRight(strings.TrimLeft(strings.Split(port.Get("path").String(), "/")[1], " "), " ")
+		//ret, err = sjson.Set(ret, strconv.Itoa(i)+".path", path)
+		//if err != nil {
+		//	return
+		//}
+		ret, err = sjson.Set(ret, strconv.Itoa(i)+".system_name", port.Get("system_name").String())
+		if err != nil {
+			return
+		}
+		ret, err = sjson.Set(ret, strconv.Itoa(i)+".node_description", port.Get("node_description").String())
 		if err != nil {
 			return
 		}

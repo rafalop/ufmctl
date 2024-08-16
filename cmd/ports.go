@@ -60,9 +60,10 @@ var portsListCmd = &cobra.Command{
 func printPortsTable(portsJson string, format string) {
 	t := table.NewWriter()
 	t.Style().Options = table.OptionsNoBordersAndSeparators
-	t.AppendHeader(table.Row{"NAME", "GUID", "LG_STATE", "PHYS_STATE", "SPEEDS", "PATH", "PEER"})
+	t.AppendHeader(table.Row{"NAME", "GUID", "LG_STATE", "PHYS_STATE", "SPEEDS", "DESC", "PEER"})
 	for _, p := range gjson.Parse(portsJson).Array() {
-		t.AppendRow(table.Row{p.Get("name").String(), p.Get("guid"), p.Get("logical_state").String(), p.Get("physical_state").String(), p.Get("enabled_speed").String(), p.Get("path").String(), p.Get("peer_node_description").String()})
+		//t.AppendRow(table.Row{p.Get("name").String(), p.Get("guid"), p.Get("logical_state").String(), p.Get("physical_state").String(), p.Get("enabled_speed").String(), p.Get("path").String(), p.Get("peer_node_description").String()})
+		t.AppendRow(table.Row{p.Get("name").String(), p.Get("guid"), p.Get("logical_state").String(), p.Get("physical_state").String(), p.Get("enabled_speed").String(), p.Get("node_description"), p.Get("peer_node_description").String()})
 	}
 	if format == "csv" {
 		fmt.Println(t.RenderCSV())
