@@ -79,6 +79,10 @@ func (u *UfmClient) PortsGetAllBrief(filters string) (ret string, err error) {
 		if err != nil {
 			return
 		}
+		ret, err = sjson.Set(ret, strconv.Itoa(i)+".peer", port.Get("peer").String())
+		if err != nil {
+			return
+		}
 		ret, err = sjson.Set(ret, strconv.Itoa(i)+".peer_node_description", port.Get("peer_node_description").String())
 		if err != nil {
 			return
