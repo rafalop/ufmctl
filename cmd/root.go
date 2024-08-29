@@ -140,7 +140,11 @@ func Init() {
 
 	rootCmd.AddCommand(vPortsCmd)
 	vPortsCmd.AddCommand(vPortsListCmd)
-	portsListCmd.Flags().StringVarP(&VPortsPhysport, "physport", "", "", "only get list of vports for this physical port")
+	vPortsListCmd.Flags().StringVarP(&VPortsPhysport, "physport", "", "", "only get list of vports for this physical port")
+
+	rootCmd.AddCommand(linksCmd)
+	linksCmd.AddCommand(linksListCmd)
+	//linksListCmd.Flags().StringVarP(&PortsHost, "system", "", "", "retrieve links for a specific system")
 
 	rootCmd.AddCommand(systemsCmd)
 	//rootCmd.PersistentFlags().StringVarP(&SystemsIp, "ip", "", "ip address for system to get info for")
