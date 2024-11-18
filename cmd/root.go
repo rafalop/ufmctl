@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
+	"regexp"
 	"strings"
 	"ufmctl/pkg/ufm"
 )
@@ -97,6 +98,11 @@ var (
 	SystemsGuids    bool
 )
 
+// Alarms
+var (
+	AlarmsDeviceId string
+)
+
 func Init() {
 	rootCmd.PersistentFlags().StringVarP(&Username, "username", "u", "", "username to connect to UFM API with")
 	rootCmd.PersistentFlags().StringVarP(&Format, "format", "f", "table", "output format (table, csv, json)")
@@ -165,6 +171,15 @@ func Init() {
 	systemsCmd.AddCommand(systemsGetCmd)
 	systemsGetCmd.Flags().BoolVar(&SystemsGuids, "guids", false, "Only print guids and hca info. Intended to combine with pkey adding/removing for whole hosts")
 
+	rootCmd.AddCommand(alarmsCmd)
+	alarmsCmd.AddCommand(alarmsListCmd)
+	alarmsCmd.AddCommand(alarmsGetCmd)
+	alarmsListCmd.Flags().StringVarP(&AlarmsDeviceId, "device-id", "", "", "only get alarms for this device-id")
+
+	rootCmd.AddCommand(eventsCmd)
+	eventsCmd.AddCommand(eventsListCmd)
+	eventsCmd.AddCommand(eventsGetCmd)
+
 }
 
 func PrintColumn(val string, padding int) {
@@ -174,4 +189,22 @@ func PrintColumn(val string, padding int) {
 func ExitError(err error) {
 	fmt.Println(err)
 	os.Exit(1)
+}
+
+// Return shorter usable name of an object path
+func EntityFromPath(path string) string {
+	var defaultRegex = "^default.*"
+	var ret string
+	noSpaces := strings.ReplaceAll(path, " ", "")
+	split := strings.Split(noSpaces, "/")
+	r := regexp.MustCompile(defaultRegex)
+	if len(split) > 2 && r.Match([]byte(split[0])) {
+		ret = strings.Join(split[1:], "/")
+	} else {
+		ret = noSpaces
+	}
+	if len(ret) > 50 {
+		return ret[0:50]
+	}
+	return ret
 }

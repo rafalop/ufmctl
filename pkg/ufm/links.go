@@ -33,4 +33,3 @@ func (u *UfmClient) LinksGetAll() (ret string, err error) {
 	return
 
 }
-

@@ -5,7 +5,6 @@ import (
 	"io"
 )
 
-
 const VPortsPath = "/ufmRestV2/resources/vports"
 
 func (u *UfmClient) VPortsGetAll(physPort string) (ret string, err error) {
@@ -28,4 +27,3 @@ func (u *UfmClient) VPortsGetAll(physPort string) (ret string, err error) {
 	return
 
 }
-
