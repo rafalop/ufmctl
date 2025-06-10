@@ -27,6 +27,7 @@ type UfmClient struct {
 	Password      string
 	Endpoint      string
 	CurrentCookie *http.Cookie
+	AuthToken	string
 }
 
 func (u *UfmClient) writeCookieFile(cookieFile string) {
@@ -42,7 +43,7 @@ func (u *UfmClient) writeCookieFile(cookieFile string) {
 	fmt.Println("Wrote cookiefile to", cookieFile)
 }
 
-func GetClient(username string, password string, endpoint string, insecure bool, cookieFile string) (*UfmClient, error) {
+func GetClient(username string, password string, endpoint string, insecure bool, cookieFile string, authToken string) (*UfmClient, error) {
 	u := &UfmClient{
 		Username: username,
 		Password: password,
@@ -50,47 +51,58 @@ func GetClient(username string, password string, endpoint string, insecure bool,
 		Insecure: insecure,
 		//AccessCookies: []*http.Cookie{},
 		CurrentCookie: nil,
+		AuthToken:  authToken,
 	}
-	// Load cookies file check expiry
-	// never expires ??
-	bytes, err := ioutil.ReadFile(cookieFile)
-	if err == nil && len(bytes) > 0 {
-		err = json.Unmarshal(bytes, &u.CurrentCookie)
+	if authToken == "" {
+		// if we didn't supply authtoken, have to try and use cookie file
+		bytes, err := ioutil.ReadFile(cookieFile)
+		if err == nil && len(bytes) > 0 {
+			err = json.Unmarshal(bytes, &u.CurrentCookie)
+			if err != nil {
+				return nil, err
+				//}
+				//if ! time.Now().Before(u.CurrentCookie.Expires) {
+				//	fmt.Println(time.Now(), u.CurrentCookie.Expires)
+				//	err := u.Auth(insecure)
+				//	if err != nil {
+				//		return nil, err
+				//	}
+				//	u.writeCookieFile(cookieFile)
+			}
+			if len(u.CurrentCookie.Value) > 0 {
+				return u, nil
+			} else {
+				fmt.Fprint(os.Stderr, "Cookies file found, but cookie value is empty. Attempting re-auth with user/pass authentication\n")
+			}
+		} else {
+			fmt.Fprint(os.Stderr, "No valid cookie file found, attempting user/pass authentication.\n")
+		}
+
+		if username == "" || password == "" {
+			return nil, errors.New("No username or password not supplied, aborting.")
+		}
+		err = u.Auth()
 		if err != nil {
 			return nil, err
-			//}
-			//if ! time.Now().Before(u.CurrentCookie.Expires) {
-			//	fmt.Println(time.Now(), u.CurrentCookie.Expires)
-			//	err := u.Auth(insecure)
-			//	if err != nil {
-			//		return nil, err
-			//	}
-			//	u.writeCookieFile(cookieFile)
 		}
-		if len(u.CurrentCookie.Value) > 0 {
-			return u, nil
-		} else {
-			fmt.Fprint(os.Stderr, "Cookies file found, but cookie value is empty. Attempting re-auth with user/pass authentication.")
+		// write out cookie file if we are using cookies
+		if u.CurrentCookie != nil {
+			u.writeCookieFile(cookieFile)
 		}
 	} else {
-		fmt.Fprint(os.Stderr, "No valid cookie file found, attempting user/pass authentication.\n")
+		fmt.Fprint(os.Stderr, "Authorization token supplied, using authtoken for authentication\n")
 	}
-
-	if username == "" || password == "" {
-		return nil, errors.New("No username or password not supplied, aborting.")
-	}
-	err = u.Auth()
-	if err != nil {
-		return nil, err
-	}
-	u.writeCookieFile(cookieFile)
 
 	return u, nil
 }
 
 func (u *UfmClient) Auth() error {
-	// Check if cookies file exists and has content
-	// UFM uses cookie after user/pass auth
+	// if we are using token, no need to auth
+	if u.AuthToken != "" {
+		return nil
+	}
+
+	// try and auth for session (cookie)
 	path := "/dologin"
 	form := url.Values{
 		"httpd_username": {u.Username},
@@ -123,13 +135,24 @@ func (u *UfmClient) Auth() error {
 	return nil
 }
 
+func (u *UfmClient) AddAuth(req *http.Request) {
+	// if we have token, just use it.
+	if u.AuthToken != "" {
+		req.Header.Set("Authorization", "Basic "+u.AuthToken)
+		return
+	}
+	// else assume we have obtained a cookie
+	req.AddCookie(u.CurrentCookie)
+	return
+}
+
 // raw get with queries
 func (u *UfmClient) Get(path string, queries []string) (*http.Response, error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
 	}
 	req, err := http.NewRequest("GET", u.Endpoint+path, nil)
-	req.AddCookie(u.CurrentCookie)
+	u.AddAuth(req)
 
 	q := req.URL.Query()
 	for _, query := range queries {
@@ -160,7 +183,7 @@ func (u *UfmClient) Post(path string, data io.Reader) (*http.Response, error) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
 	}
 	req, err := http.NewRequest("POST", u.Endpoint+path, data)
-	req.AddCookie(u.CurrentCookie)
+	u.AddAuth(req)
 
 	//fmt.Println("req:", req)
 	if err != nil {
@@ -179,7 +202,7 @@ func (u *UfmClient) Delete(path string) (*http.Response, error) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
 	}
 	req, err := http.NewRequest("DELETE", u.Endpoint+path, nil)
-	req.AddCookie(u.CurrentCookie)
+	u.AddAuth(req)
 
 	//fmt.Println("req:", req)
 	if err != nil {
@@ -197,7 +220,7 @@ func (u *UfmClient) Put(path string, data io.Reader) (*http.Response, error) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
 	}
 	req, err := http.NewRequest("PUT", u.Endpoint+path, data)
-	req.AddCookie(u.CurrentCookie)
+	u.AddAuth(req)
 
 	//fmt.Println("req:", req)
 	if err != nil {

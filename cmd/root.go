@@ -44,7 +44,7 @@ func ConfirmPrompt(prompt string) bool {
 func GetUfmClient() *ufm.UfmClient {
 
 	var err error
-	UfmClient, err = ufm.GetClient(Username, Password, Endpoint, Insecure, CookieFile)
+	UfmClient, err = ufm.GetClient(Username, Password, Endpoint, Insecure, CookieFile, AuthToken)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -58,6 +58,7 @@ func GetRootCmd() *cobra.Command {
 
 var Username string
 var Password string
+var AuthToken string
 var Endpoint string
 var Insecure bool
 var PrintStatus bool
@@ -103,8 +104,14 @@ var (
 	AlarmsDeviceId string
 )
 
+// Events and alarms
+var (
+	DescriptionOnly bool
+)
+
 func Init() {
 	rootCmd.PersistentFlags().StringVarP(&Username, "username", "u", "", "username to connect to UFM API with")
+	rootCmd.PersistentFlags().StringVarP(&AuthToken, "authtoken", "a", "", "auth token to connect to UFM API with")
 	rootCmd.PersistentFlags().StringVarP(&Format, "format", "f", "table", "output format (table, csv, json)")
 	rootCmd.PersistentFlags().StringVarP(&Password, "password", "p", "", "password to connect to UFM API with")
 	rootCmd.PersistentFlags().StringVarP(&Endpoint, "endpoint", "e", "", "UFM API endpoint")
@@ -175,10 +182,12 @@ func Init() {
 	alarmsCmd.AddCommand(alarmsListCmd)
 	alarmsCmd.AddCommand(alarmsGetCmd)
 	alarmsListCmd.Flags().StringVarP(&AlarmsDeviceId, "device-id", "", "", "only get alarms for this device-id")
+	alarmsListCmd.Flags().BoolVar(&DescriptionOnly, "description-only", false, "Just print description full text")
 
 	rootCmd.AddCommand(eventsCmd)
 	eventsCmd.AddCommand(eventsListCmd)
 	eventsCmd.AddCommand(eventsGetCmd)
+	eventsListCmd.Flags().BoolVar(&DescriptionOnly, "description-only", false, "Just print description full text")
 
 }
 
