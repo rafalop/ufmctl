@@ -1,7 +1,7 @@
 package ufm
 
 import (
-	"bytes"
+//	"bytes"
 	"errors"
 	"io"
 	"strings"
@@ -193,7 +193,7 @@ func (u *UfmClient) PkeyAddGuids(pkey string, index0 bool, ipoib bool, membershi
 		return
 	}
 	//fmt.Println(pkeyAddGuidsData)
-	resp, err := u.Post(PkeysPath, bytes.NewReader([]byte(pkeyAddGuidsData)))
+	resp, err := u.Post(PkeysPath, "", pkeyAddGuidsData)
 	if resp.StatusCode != 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		err = errors.New("there was an error creating the pkey: " + resp.Status + " (" + string(bodyBytes) + ")")

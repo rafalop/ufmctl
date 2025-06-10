@@ -11,6 +11,7 @@ import (
 	"strings"
 	//"time"
 	"errors"
+	"bytes"
 	"os"
 )
 
@@ -178,14 +179,22 @@ func (u *UfmClient) Get(path string, queries []string) (*http.Response, error) {
 }
 
 // raw put
-func (u *UfmClient) Post(path string, data io.Reader) (*http.Response, error) {
+func (u *UfmClient) Post(path string, contentType string, data string) (*http.Response, error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: u.Insecure},
 	}
-	req, err := http.NewRequest("POST", u.Endpoint+path, data)
+	var ctype string
+	if contentType == "" {
+		ctype = "application/json"
+	} else{
+		ctype = contentType
+	}
+	req, err := http.NewRequest("POST", u.Endpoint+path, bytes.NewReader([]byte(data)))
+	req.Header.Set("Content-type", ctype)
 	u.AddAuth(req)
 
 	//fmt.Println("req:", req)
+	//fmt.Println("req data:", data)
 	if err != nil {
 		return nil, err
 	}

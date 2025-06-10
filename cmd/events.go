@@ -30,6 +30,13 @@ var eventsListCmd = &cobra.Command{
 		if Format == "json" {
 			fmt.Println(eventsJson)
 		} else if Format == "table" {
+			if DescriptionOnly {
+				for _, p := range gjson.Parse(eventsJson).Array() {
+					desc := p.Get("description").String()
+					fmt.Println(desc)
+				}
+				os.Exit(0)
+			}
 			printEventsTable(eventsJson)
 		}
 		os.Exit(0)

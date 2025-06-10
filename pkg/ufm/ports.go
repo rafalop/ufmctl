@@ -16,7 +16,6 @@ func don_nothing() {
 }
 
 const PortsPath = "/ufmRestV2/resources/ports"
-const ActionsPath = "/ufmRestV2/actions"
 
 func (u *UfmClient) PortsGet(portName string) (ret string, err error) {
 	path := PortsPath + "/" + portName

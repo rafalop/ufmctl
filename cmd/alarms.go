@@ -30,6 +30,13 @@ var alarmsListCmd = &cobra.Command{
 		if Format == "json" {
 			fmt.Println(alarmsJson)
 		} else if Format == "table" {
+			if DescriptionOnly {
+				for _, p := range gjson.Parse(alarmsJson).Array() {
+					desc := p.Get("reason").String()
+					fmt.Println(desc)
+				}
+				os.Exit(0)
+			}
 			printAlarmsTable(alarmsJson)
 		}
 		os.Exit(0)

@@ -189,6 +189,9 @@ func Init() {
 	eventsCmd.AddCommand(eventsGetCmd)
 	eventsListCmd.Flags().BoolVar(&DescriptionOnly, "description-only", false, "Just print description full text")
 
+	rootCmd.AddCommand(actionsCmd)
+	actionsCmd.AddCommand(actionsGetCablesInfoCmd)
+
 }
 
 func PrintColumn(val string, padding int) {
