@@ -91,7 +91,7 @@ func GetClient(username string, password string, endpoint string, insecure bool,
 			u.writeCookieFile(cookieFile)
 		}
 	} else {
-		fmt.Fprint(os.Stderr, "Authorization token supplied, using authtoken for authentication\n")
+		//fmt.Fprint(os.Stderr, "Authorization token supplied, using authtoken for authentication\n")
 	}
 
 	return u, nil
